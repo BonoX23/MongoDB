@@ -1,0 +1,740 @@
+// Mostrando todos os bancos de dados
+
+show dbs
+
+
+// Criando banco de dados
+
+use meudb
+
+// Inserindo documentos
+
+db.minhaCollection.insert({"valor" : 123})
+
+// Find = Select
+
+db.minhaCollection.find()
+
+// Criando o banco escola
+
+use escola
+
+// Cadastro do Toninho
+
+db.alunos.insert({
+	"nome": "Toninho",
+	"Idade": 12,
+	"gosta_de": ["futebol", "carrinho", "video Game"],
+	"na escola": true,
+	"materias": {
+		"português": 8.9,
+		"matemática": 9.5,
+		"história": 2.4
+	}
+})
+
+// Um select com uma vizualizaçao melhor no terminal
+
+db.alunos.find().pretty()
+
+// ObjectID = Chave primária (É melhor deixar o Mongo preencher)
+
+// FindOne = Acha apenas 1
+
+// Para trazer o ID:
+
+db.minhaCollection.findOne()._id
+
+// Descobrindo a a data de criação
+
+db.minhaCollection.findOne()._id.getTimestamp()
+
+// CRUD
+
+
+// Create = Criar um recurso
+//insert({})
+
+// insertOne não aceita array
+
+db.crud.insertOne({a: 123})
+
+// insertMany
+
+db.crud.insertMany([{a: 123},{b: 456}, {c: 789}])
+
+// Se o Ordered for false ele continua inserindo os dados {ordered: false} 
+
+db.testInsertMany.insertMany([{_id: 1, a: 123}, {_id: 2, b: 456}, {_id: 3, c: 789}])
+
+db.testInsertMany.find().pretty()
+
+
+// Aplicando o Ordered
+
+// Abaixo com erro
+db.testInsertMany.insertMany([{_id: 2}, {_id: 7, msg: 'test'}])
+
+// Forçando a inserção dos demais que não possuem duplicidade
+db.testInsertMany.insertMany([{_id: 2}, {_id: 7, msg: 'test'}], {ordered: false})
+
+-----------------------------------------------------------------------------------
+
+// Read = Ler o recurso
+//find({})
+
+// Apicando filtros no Find
+use escola
+
+ db.crud.find({b: 456})
+
+
+// Para esconder o Object
+db.alunos.findOne({}, {nome: 1, materias: 1, _id: 0})
+
+-----------------------------------------------------------------------------------
+
+// Update = Atualizar o recurso
+// update({})
+
+//Acrescentando apenas no primeiro documento que ele encontrar
+
+db.crud.updateOne({b: 456}, {$set: {d: 555}})
+
+
+// Acrescenta em todos os filtros que ele encontrar
+
+db.crud.updateMany({a: 123}, {$set: {h: 987}})
+
+----------------------------------------------------------------------------------
+
+// Delete = Deletar o recurso
+// deleteOne({})
+
+// Deletando o primeiro do cumento que ele encontrar
+
+db.crud.deleteOne({a: 123})
+
+// Deletando todos os documentos que ele encontrar.... Obs: ele apaga o objeto inteiro
+
+db.crud.deleteMany({a: 123})
+
+// Apagando uma COLLECTION (exemplo a baixo)
+
+db.cars.drop()
+
+-----------------------------------------------------------------------------------
+
+
+// Substituindo domento
+
+db.crud.replaceOne({c:789}, {outro: "documento"})
+
+-----------------------------------------------------------------------------------
+
+
+// MODELAGEM
+
+// ONE to ONE
+
+// parecido com SQL
+
+{
+	"_id": 1,
+	"cpf": "123456789",
+	"nome": "Joãozinho",
+	"Cidade": "São Paulo",
+	"carteirinha_id": 8
+}
+
+
+{
+	"_id": 8,
+	"turma": "220A",
+	"ra": 1245
+}
+
+// Usando embedded documents
+
+{
+	"_id": 1,
+	"cpf": "123456789",
+	"nome": "Joãozinho",
+	"Cidade": "São Paulo",
+	"carteirinha_id": {
+		"_id": 8,
+		"turma": "220A",
+		"ra": 1245
+	}
+}
+
+// One to Many
+
+
+{
+    "_id": 3,
+    "meta": 4000,
+    "nome": "Vendas",
+    "funcionarios": [
+        {
+            "_id": 8,
+            "salario": 1400,
+            "turno": "tarde",
+            "cargo": "vendedor"
+        },
+        {
+            "_id": 12,
+            "salario": 1600,
+            "turno": "noite",
+            "cargo": "vendedor"
+        }
+    ]
+}
+
+
+
+// Many to Many
+
+
+// Collection Fornecedores
+{
+    "_id": "f04",
+    "cnpj": "165486984",
+    "nome": "Fornecedor Legal",
+    "cep": "1098465",
+    "produto_ids": ["p16", "p21"]
+}
+ 
+{
+    "_id": "f07",
+    "cnpj": "98498151",
+    "nome": "Fornecedor Maneiro",
+    "cep": "198498",
+    "produto_ids": ["p21", "p47"]
+}
+
+
+// Collection Produtos
+{
+    "_id": "p16",
+    "descricao": "Panela",
+    "preco": 45.50,
+    "fornecedor_ids": ["f04"]
+}
+ 
+{
+    "_id": "p21",
+    "descricao": "Prato",
+    "preco": 14,
+    "fornecedor_ids": ["f04", "f07"]
+} 
+ 
+{
+    "_id": "p47",
+    "descricao": "Faqueiro",
+    "preco": 127.46,
+    "fornecedor_ids": ["f07"]
+}
+
+
+
+// Many To Many | Muitos Para Muitos | Híbrido de Referência com Embedded - Recurso
+
+// Collection Fornecedores
+{
+    "_id": "f04",
+    "cnpj": "165486984",
+    "nome": "Fornecedor Legal",
+    "cep": "1098465",
+    "produtos": [
+        {
+            "_id": "p16",
+            "preco": 46.50
+        },
+        {
+            "_id": "p21",
+            "preco": 12
+        }
+    ]
+}
+ 
+{
+    "_id": "f07",
+    "cnpj": "98498151",
+    "nome": "Fornecedor Maneiro",
+    "cep": "198498",
+    "produtos": [
+        {
+            "_id": "p21",
+            "preco": 16
+        },
+        {
+            "_id": "p47",
+            "preco": 127.46
+        }
+    ]
+}
+
+
+// Collection Produtos
+{
+    "_id": "p16",
+    "descricao": "Panela",
+    "fornecedores": [
+        {
+            "_id": "f04",
+            "preco": 46.50
+        }
+    ]
+}
+ 
+{
+    "_id": "p21",
+    "descricao": "Prato",
+    "fornecedores": [
+        {
+            "_id": "f04",
+            "preco": 12
+        },
+        {
+            "_id": "f07",
+            "preco": 16
+        }
+    ]
+} 
+ 
+{
+    "_id": "p47",
+    "descricao": "Faqueiro",
+    "fornecedores": [
+        {
+            "_id": "f07",
+            "preco": 127.46
+        }
+    ]
+}
+
+
+
+// Duplicar ou não duplicar? Segredos e vantagens desse modelo
+
+// Collection Fornecedores
+{
+    "_id": "f04",
+    "cnpj": "165486984",
+    "nome": "Fornecedor Legal",
+    "cep": "1098465",
+    "produtos": [
+        {
+            "_id": "p16",
+            "descricao": "Panela",
+            "preco": 46.50
+        },
+        {
+            "_id": "p21",
+            "descricao": "Prato",
+            "preco": 12
+        }
+    ]
+}
+ 
+{
+    "_id": "f07",
+    "cnpj": "98498151",
+    "nome": "Fornecedor Maneiro",
+    "cep": "198498",
+    "produtos": [
+        {
+            "_id": "p21",
+            "descricao": "Prato",
+            "preco": 16
+        },
+        {
+            "_id": "p47",
+            "descricao": "Faqueiro",
+            "preco": 127.46
+        }
+    ]
+}
+// Collection Produtos
+{
+    "_id": "p16",
+    "descricao": "Panela",
+    "fornecedores": [
+        {
+            "_id": "f04",
+            "preco": 46.50,
+            "cep": "1098465"
+        }
+    ],
+    "peso": 4,
+    "unidade_peso": "kg",
+    "altura": 14,
+    "largura": 15,
+    "profundidade": 20
+}
+ 
+{
+    "_id": "p21",
+    "descricao": "Prato",
+    "fornecedores": [
+        {
+            "_id": "f04",
+            "preco": 12,
+            "cep": "1098465"
+        },
+        {
+            "_id": "f07",
+            "preco": 16,
+            "cep": "198498",
+        }
+    ]
+} 
+ 
+{
+    "_id": "p47",
+    "descricao": "Faqueiro",
+    "fornecedores": [
+        {
+            "_id": "f07",
+            "preco": 127.46,
+            "cep": "198498",
+        }
+    ]
+}
+
+-------------------------------------------------------------------
+
+// Criando uma collection
+
+db.createCollection("cars", {
+    validator: {
+        $jsonSchema: {
+            bsonType: "object",
+            required: ["model", "year"],
+            properties: {
+                model: {
+                    bsonType: "string",
+                    description: "O Modelo é necessário e deve ser uma string"
+                },
+                madeBy: {
+                    bsonType: "string",
+                    minLength: 3
+                },
+                year: {
+                    bsonType: "int",
+                    minimum: 1980,
+                    maximum: 2025
+                }
+            }
+        }
+    }
+})
+
+---------------------------------------------------------------------------
+
+// Criando uma "fila" Logs
+
+db.createCollection("logs", {
+    capped: true,
+    size: 2048,
+    max: 5
+})
+
+
+--------------------------------------------------------------------------
+
+
+Comando para importar dados
+
+mongoimport --db query --collection pokemon --type json --file pokemon.json
+
+---------------------------------------------------------------------------
+
+// procurando todos os pokemons legendarios
+
+db.pokemon.find({legendary : true})
+
+
+// mostrando somente o primeiro 
+
+db.pokemon.findOne({legendary : true})
+
+
+// contando o numero de pokemons legendarios
+
+db.pokemon.find({legendary : true}).count
+
+//ou
+
+db.pokemon.count({legendary : true})
+
+// filtra o dados distintos
+
+db.pokemon.distinct({generation})
+
+// encotrando o pokemon Pikachu
+
+db.pokemon.find({name:"Pikachu"})
+
+// encotrando o pokemon Pikachu sem escrever o nome completo
+
+// iniciar com a palavra pik utilize (^)
+
+db.pokemon.find({name:/^pik/})
+
+// desativando o case sensitive
+
+db.pokemon.find({name:/^pik/i})
+
+// terminando com a palavra pik ulize ($)
+
+db.pokemon.find({name:/pik$/})
+
+// mostrando apenas o nome do pokemon, e não todas as chaves
+
+db.pokemon.find({name:/^pik/}, {name:true})
+
+----------------------------------------------------------------
+
+//Utilizando valores de comparação, exemplo buscar valores de ataque acima de 85
+
+db.pokemon.find({attack: {$gte:85}}, {name:1, attack:1, _id:0})
+
+// Realizando uma busca por array (buscando o que tenha pelo menos tipo fogo)
+
+db.pokemon.find({types: "Fire"}, {name: 1, types: 1, _id: 0})
+
+// Realizando uma busca por array (buscando o que tenha pelo menos tipo fogo OU pedra)
+
+db.pokemon.find({types: {$in: ["Fire", "Rock"]}}, {name: 1, types: 1, _id: 0})
+
+// Realizando uma busca por array (buscando o que NÃO tenha pelo menos tipo fogo OU pedra)
+
+db.pokemon.find({types: {$nin: ["Fire", "Rock"]}}, {name: 1, types: 1, _id: 0})
+
+// Realizando pesquisa de faixa de defesa entre 80 e 90
+
+db.pokemon.find({defense: {$gt:60, $lte:72}, {name: 1, defense: 1, _id: 0})
+
+// // Realizando pesquisa de faixa de defesa entre 60 e 72 ou que seja exatamente 100
+
+
+db.pokemon.find(
+	{
+		$or: [
+			{
+				defense: {
+					$gte:60, 
+					$lte:72
+					},
+			}, 
+			{
+				defense: 100
+			}
+		], 
+	},
+	{name: 1, defense: 1, _id: 0}
+	);
+
+// Buscando Pokemons que tenham OU Ataque e velocidade, OU que tenham Defesa e HP
+// se fosse em javascript if((hp >= 80 && defense >= 80) || (attack >= 80 && speed >= 80))
+
+
+db.pokemon.find(
+	{
+		$or: [
+			{
+				defense: {$gte:80},
+				hp: {$gte: 80}
+			}, 
+			{
+				attack: {$gte: 80},
+				speed: {$gte: 80}
+			}
+		], 
+	},
+	{name: 1, defense: 1, attack: 1, hp: 1, speed: 1, _id: 0}
+	).pretty();
+
+// Ordenado de valor crescente (1), decrescente (-1)
+
+db.pokemon.find(
+	{
+		$or: [
+			{
+				defense: {$gte:80},
+				hp: {$gte: 80}
+			}, 
+			{
+				attack: {$gte: 80},
+				speed: {$gte: 80}
+			}
+		], 
+	},
+	{name: 1, defense: 1, hp: 1, attack: 1,  speed: 1, _id: 0}
+	).sort({hp: 1, defense: 1, attack: 1, speed: 1}).pretty();
+
+// exemplo de OR
+
+db.pokemon.find({types:{$in: ["Rock", "Flying"]}}, {_id: 0, name: 1, types: 1})
+
+// exemplo de AND
+
+db.pokemon.find({types: {$all: ["Rock", "Flying"]}},{name: 1, types:1, _id:0})
+
+
+// O AND tb pode ser implcito 
+
+db.pokemon.find(
+	{types:"Flying",
+	legendary: true
+	},
+	{name: 1, types:1, legendary: 1, _id:0})
+
+
+
+
+// Mostrando apenas os pokemons que possuem apenas 1 tipo:
+
+db.pokemon.find({types:{$size: 1}}, {name: 1, types: 1, _id:0})
+
+// criando paginação com 5 pokemons
+
+db.pokemon.find({types: "Fire"}).sort({attack: -1}).limit(5)
+
+// criando paginação com cinco pokemons a partir da pagina 2
+
+db.pokemon.find({types: "Fire"}, 
+	{_id: 0, name: 1, attack: 1}).sort({attack: -1}).skip(5).limit(5)
+
+// procurar se algum dcumento possui um campo especifico
+
+db.pokemon.find({battle_points: {$exists:true}})
+
+// procurar se algum dcumento possui um campo especifico aplicando filtro no HP (dot notation)
+
+db.pokemon.find({"battle_points.hp": {$lte: 40}}).pretty()
+
+------------------------------------------------------------------------------------------
+
+// Update
+
+db.pokemon.updateOne({name: /^O/}, {$set: {startsWithO:true}})
+
+// acrescentando Chaves e valores em todos
+
+db.pokemon.updateMany({name: /^O/}, {$set: {startsWithO:true}})
+
+// Removendo o campo
+
+db.pokemon.updateMany({name: /^O/}, {$unset: {startsWithO: "Não faz a menor diferença no valor"}})
+
+// Fazendoo substituição de valores
+
+db.pokemon.updateMany({name: /^O/}, {$set: {name: "Começa com O"}})
+
+// Incrementando um valor inteiro, ou seja atribuindo mais 10 pontos no ataque
+
+db.pokemon.updateMany({types: "Fire"}, {$inc: {attack: 10}})
+
+// retirando um valor inteiro, ou seja subtraindo 10 pontos no ataque
+
+db.pokemon.updateMany({types: "Fire"}, {$inc: {attack: -10}})
+
+
+-------------------------------------------------------------------------
+
+// Alterar todos os valores que estejam acima de 150 para 150
+
+db.pokemon.updateMany({types: "Fire"}, {$min: {attack: 150}})
+
+//Projeção 
+db.pokemon.find({types:"Fire"}, {_id:0, name: 1, attack:1}).count()
+
+
+// Tudo que estiver abaixo de 75 será convertido para 75´para atualizar a base inteira basta colocar o objeto vazio {}
+db.pokemon.updateMany({}, {$max: {attack: 75}})
+
+db.pokemon.updateMany({},{$max: {attack: 75}})
+
+db.pokemon.find({types:"Fire"}, {_id:0, name: 1, attack:1}).count()
+
+
+60 = ($max)
+70 = ($max)
+80 = 
+90 =
+100 = 
+160 = ($min)
+222 = ($min)
+360 = ($min)
+
+//Limite superior: 150($min)
+//Limite inferior: 75 ($max)
+
+------------------------------------------------------------------------------------
+
+// Criando um Log de registro (timestamp)
+
+db.pokemon.updateMany({types: "Bug"},
+	{
+		$set: {name: "É do tipo Bug"},
+		$currentDate: {
+			updateAt: {$type: "timestamp"}
+		}
+})
+
+// Criando um Log de registro (date {Marca exato momento alterado ou criado})
+
+db.pokemon.updateMany({types: "Bug"},
+	{
+		$set: {name: "É do tipo Bug"},
+		$currentDate: {
+			updateAt: true
+		}
+})
+
+------------------------------------------------------------------------------------------
+
+// UPSERT = update + insert
+
+// Explicação através de um pseudocódigo (o codigo abaixo não existe é só para explicar a query seguinte)
+
+if(existeUm Charmander()){
+	ColoqueAttack(85), //update
+}	else{
+		CriarChamander(85)//insert
+}
+*//
+
+
+// Como o Pokeon abaixo já existe, ele atuaiza os dados
+db.pokemon.updateOne(
+	{name:"Charmander"},
+	{$set: {attack: 150}},
+	{upsert:true}
+
+)
+
+db.pokemon.find({name:"Charmander"}).pretty()
+
+// Quando o pokemon não existe ele insere este
+
+db.pokemon.updateOne(
+	{name:"PokeX"},
+	{$set: {attack: 450}},
+	{upsert:true}
+
+)
+
+db.pokemon.find({name:"PokeX"}).pretty()
+
+// Para inserir um novo atributo
+
+db.pokemon.updateOne(
+	{name:"PokeX"},
+	{$set: {attack: 450}},
+	{upsert:true}
+
+)
