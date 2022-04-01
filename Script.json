@@ -626,6 +626,14 @@ db.pokemon.updateOne({name: /^O/}, {$set: {startsWithO:true}})
 
 db.pokemon.updateMany({name: /^O/}, {$set: {startsWithO:true}})
 
+outro exemplo
+
+db.pokemon.updateOne(
+    {name:"PokeX"},
+    {$set: {instagram: "@pokemon"}}
+
+);
+
 // Removendo o campo
 
 db.pokemon.updateMany({name: /^O/}, {$unset: {startsWithO: "Não faz a menor diferença no valor"}})
@@ -723,7 +731,7 @@ db.pokemon.find({name:"Charmander"}).pretty()
 
 db.pokemon.updateOne(
 	{name:"PokeX"},
-	{$set: {attack: 450}},
+	{$set: {attack: 480}},
 	{upsert:true}
 
 )
@@ -733,8 +741,94 @@ db.pokemon.find({name:"PokeX"}).pretty()
 // Para inserir um novo atributo
 
 db.pokemon.updateOne(
-	{name:"PokeX"},
-	{$set: {attack: 450}},
+	{name:"PokeX_Novo"},
+	{
+        $set: {attack: 480},
+        $setOnInsert: {
+            defense:35,
+            hp:800,
+            speed:85
+        }
+    },
 	{upsert:true}
+);
 
-)
+-------------------------------------------------------------------------------
+
+// atualizando um array
+
+// Atualizando apenas um campo de uma lista
+
+db.pokemon.find({_id:1, types: "Poison"})
+
+db.pokemon.updateOne({_id:1, types: "Poison"}, {$set:{"types.$": "Lasanha"}})
+
+
+// Trocando todos os elementos da lista do documento.
+
+db.pokemon.updateOne({_id:1}, {$set:{"types.$[]": "Pizza"}})
+
+db.pokemon.find({_id:1}).pretty()
+
+// Inserindo um novo elemento na lista
+
+db.pokemon.updateOne(
+    {_id:1},
+    {
+        $push:{
+            types: "Lasanha"
+        }
+    }
+);
+
+// Inserindo mais de um elemento de uma vez na lista
+
+db.pokemon.updateOne(
+    {_id:1},
+    {
+        $push:{
+            types: {
+                $each: ["Hotdog","Hamburguer","Sorvete"]
+            }
+        }
+    }
+);
+
+// Inserindo um documento em determinada posição na lista, ou seja Esfiha na segunda posição
+
+db.pokemon.updateOne(
+    {_id:1},
+    {
+        $push:{
+            types: {
+                $each: ["Esfiha"],
+                $position: 2
+            }
+        }
+    }
+);
+
+// Adicionando um elemento à lista caso não tenha repetido. (Mais utilizado que o push)
+
+db.pokemon.updateOne(
+    {_id:1},
+    {
+        $addToSet:{
+            types: "Hamburguer"
+        }
+    }
+);
+
+// Abaixo tentaremos inserir 3 itens (Esfiha, Hamburguer, Mousse), porém só será adcionado mousse
+// pois somente ele não existe ainda
+
+db.pokemon.updateOne(
+    {_id:1},
+    {
+        $addToSet:{
+            types: {
+                $each: ["Esfiha", "Hamburguer","Mousse"]
+            }
+        }
+    }
+);
