@@ -2,6 +2,9 @@
 
 show dbs
 
+// mostrndo status de um banco
+
+db.stats()
 
 // Criando banco de dados
 
@@ -832,3 +835,546 @@ db.pokemon.updateOne(
         }
     }
 );
+
+// Acrescentando e colocando a lista de um documento em ordem alfabetica
+
+db.pokemon.updateOne(
+    {_id:1},
+    {
+        $push:{
+            types: {
+                $each: ["Batata Frita"],
+                $sort: 1
+            }
+        }
+    }
+);
+
+// APENAS colocando a lista de um documento em ordem alfabetica (decrescente), dica coloca o
+// each VAZIO
+
+db.pokemon.updateOne(
+    {_id:1},
+    {
+        $push:{
+            types: {
+                $each: [],
+                $sort: -1
+            }
+        }
+    }
+);
+
+    db.pokemon.find({_id:1}).pretty()
+
+//Slice serve para cortar o Array, abaixo nos decidimos projetar apenas os 5 primeiros elementos
+
+db.pokemon.updateOne(
+    {_id:1},
+    {
+        $push:{
+            types: {
+                $each: [],
+                $slice: 5
+            }
+        }
+    }
+);
+
+// Projetando apenas os dois ultimos
+
+db.pokemon.updateOne(
+    {_id:1},
+    {
+        $push:{
+            types: {
+                $each: [],
+                $slice: -2
+            }
+        }
+    }
+);
+
+// Removendo um elemento do array com Pull (Remove oque vc definir através de uma Query)
+// Exemplo utilizar operadores in, lte, gte.
+
+db.pokemon.updateOne(
+    {_id:1},
+    {
+        $pull:{
+            types: {
+                $in: ["Esfiha", "Hamburguer"]
+            }
+        }
+    }
+);
+
+// PullAll remove os elementos sem utilizar uma query
+
+db.pokemon.updateOne(
+    {_id:1},
+    {
+        $pull:{
+            types: ["Esfiha","Hamburguer"]
+        }
+    }
+
+
+------------------------------------------------------------------------------
+
+// atualizando objetos dentro de arrays
+
+db.pokemon.updateOne(
+    {_id:1},
+    {
+        $set:{
+            types: [
+                {name: "Fire", bonus_points: 45, weakness: "Water"},
+                {name: "Rock", bonus_points: 12, weakness: "Paper"},
+                {name: "Bug", bonus_points: 14, weakness: "Chinelão"}
+            ]
+        }
+    }
+);
+
+
+db.pokemon.updateOne(
+    {_id:1, "types.name": "Fire"},
+    {
+        $set:{"types.$.bonus_points": 18}
+    }
+);
+
+//inserindo um novo campo
+
+db.pokemon.updateOne(
+    {_id:1, "types.name": "Fire"},
+    {
+        $set:{"types.$.outro_campo": "blah"}
+    }
+);
+
+// Apagando um objeto (campo)
+
+db.pokemon.updateOne(
+    {_id:1, "types.name": "Fire"},
+    {
+        $unset:{"types.$.outro_campo": true}
+    }
+);
+
+-------------------------------------------------------------------------
+
+// (Aplicando) Ordenando array e documentos
+
+db.pokemon.updateOne(
+    {_id:1},
+    {
+        $push: {
+            types: {
+                $each:[],
+                $sort:{
+                    bonus_points: 1             
+                }
+            }
+        }
+    }
+);
+
+----------------------------------------------------------------------------
+
+db.pokemon.updateOne(
+    {_id:1, "types.name": "Fire"},
+    {
+        $set:{
+        "types.$.strong_against": ["Ice", "Bug", "Poison"]
+        }
+    }
+);
+
+//O Mongo não suporta alteração de array de 2 nivel conforme abaixo:
+
+ db.pokemon.find({_id:1}).pretty()
+{
+        "_id" : 1,
+        "types" : [
+                {
+                        "name" : "Rock",
+                        "bonus_points" : 12,
+                        "weakness" : "Paper"
+                },
+                {
+                        "name" : "Bug",
+                        "bonus_points" : 14,
+                        "weakness" : "Chinelão"
+                },
+                {
+                        "name" : "Fire",
+                        "bonus_points" : 18,
+                        "weakness" : "Water",
+                        "strong_against" : [
+                                "Ice",
+                                "Bug",
+                                "Poison"
+                        ]
+                }
+        ],
+        "name" : "Bulbasaur",
+        "legendary" : false,
+        "hp" : 45,
+        "attack" : 75,
+        "defense" : 49,
+        "speed" : 45,
+        "generation" : 1
+}
+
+------------------------------------------------------------------
+
+// insere e retorna o documento na mesma query
+
+db.pokemon.findOneAndUpdate(
+    {_id:256},
+    {
+        $set: {
+        using_find_one_and_update:true
+        }
+    },
+    {
+        returnNewDocument:true
+    }
+);
+
+//exemplo
+
+{
+        "_id" : 256,
+        "types" : [
+                "Fighting"
+        ],
+        "name" : "Tyrogue",
+        "legendary" : false,
+        "hp" : 35,
+        "attack" : 75,
+        "defense" : 35,
+        "speed" : 35,
+        "generation" : 2,
+        "using_find_one_and_update" : true
+}
+
+-----------------------------------------------------------------------
+
+// Modifica e projeta
+
+db.pokemon.findAndModify({
+    query: {_id:548},
+    update:{$set: {using_find_and_modify:true}},
+    new:true
+});
+
+{
+        "_id" : 548,
+        "types" : [
+                "Water"
+        ],
+        "name" : "Phione",
+        "legendary" : false,
+        "hp" : 80,
+        "attack" : 80,
+        "defense" : 80,
+        "speed" : 80,
+        "generation" : 4,
+        "using_find_and_modify" : true
+}
+
+--------------------------------------------------------------------------
+
+// Apagando um documento com findAndModify
+
+db.pokemon.findAndModify({
+    query: {_id:548},
+    remove: true
+});
+
+db.pokemon.find({_id:548}).pretty()
+
+---------------------------------------------------------------------------
+
+// Criado Index
+
+db.pokemon.createIndex({name: 1})
+
+
+// Consultar os Indexes
+
+db.pokemon.getIndexes()
+
+db.pokemon.find({name: "Umbreon"}).explain('executionStats')
+
+// Criando um Index Composto
+
+db.pokemon.createIndex({attack: 1, name: 1})
+
+// Apagando Indexes
+
+db.pokemon.dropIndex("attack_1_name_1")
+
+db.pokemon.dropIndex("name_1_attack_1")
+
+db.pokemon.createIndex({attack: 1, defense: -1}, {name: "fortes_pouca_defesa"})
+
+// Criando Index em array é exatamente a mesma coisa
+
+db.pokemon.createIndex({types: 1})
+
+// * -------------------------------------------------------------------------*
+
+// Script Dominó
+
+function domino() {
+  for (let x = 0; x <= 6; x++) {
+    for (let y = 0; y <= x; y++) {
+      db.domino.insert({
+        piece: [x, y],
+      });
+    }
+  }
+}
+
+--------------------------------------------------------------------------------
+
+// Collection People
+
+db.people.createIndex({name: 1, height: 1})
+
+db.people.getIndexes()
+
+db.people.dropIndex("name_1")
+
+-----------------------------------------------------------------------------------
+
+mongoimport --db pokemon_center --collection combats --type CSV --file combats.csv --headerline
+
+//Aggregate
+
+
+// Neste aggregate além de vc estar trazendo todas as informações da collection combat, vc trará com o lookup as informações que deseja da collection pokemon
+
+db.combats.aggregate([
+    {
+        $lookup: {
+            from: "pokemon", // O nome da collection que ele irá buscar os dados
+            localField: "First_pokemon", //O campo que guarda onde está o dado que vc quer comparar
+            foreignField: "_id", // o nome do campo da collection pokemon que a First_pokemon fará ligação
+            as: "pokemon1" // Campo criado para mostrar o resultado
+        }
+    },
+    {
+        $lookup: {
+            from: "pokemon", // O nome da collection que ele irá buscar os dados
+            localField: "Second_pokemon", //O campo que guarda onde está o dado que vc quer comparar
+            foreignField: "_id", // o nome do campo da collection pokemon que a First_pokemon fará ligação
+            as: "pokemon2" // Campo criado para mostrar o resultado
+    },
+    {
+        $project: {
+            _id:0, // esconde o ID
+            Winner:1, // mostra o Winner
+            pokemon1:{
+                $arrayElemAt:["pokemon1",0] // remove o array, tranformando apenas em um objeto
+            },
+            pokemon2:{
+                $arrayElemAt:["pokemon2",0] // remove o array, tranformando apenas em um objeto
+            }
+        }
+    },
+    {
+        $project:{
+            winner:{
+                $cond:{
+                    if: { $eq: ["$Winner", "$pokemon1._id"]},
+                    then: "$pokemon1.name",
+                    else: "$pokemon2.name"
+                }
+            }
+        }
+    }
+]);
+
+--------------------------------------------------------------------------------------------
+
+// Aggregate corrigida
+
+db.combats.find()
+
+db.combats.aggregate([
+    {
+        $lookup: {
+            from: "pokemon",
+            localField: "First_pokemon",
+            foreignField: "_id",
+            as: "pokemon1_arr"
+        }
+    },
+    {
+        $lookup: {
+            from: "pokemon",
+            localField: "Second_pokemon",
+            foreignField: "_id",
+            as: "pokemon2_arr"
+        }
+    },
+    {
+        $project: {
+            _id: 0,
+            Winner: 1,
+            pokemon1: {
+                $arrayElemAt: ["$pokemon1_arr", 0]
+            },
+            pokemon2: {
+                $arrayElemAt: ["$pokemon2_arr", 0]
+            }
+        }
+    },
+    {
+        $project: {
+            first_pokemon: "$pokemon1.name",
+            second_pokemon: "$pokemon2.name",
+            winner: {
+                $cond: {
+                    if: { $eq: ["$Winner", "$pokemon1._id"] },
+                    then: "$pokemon1.name",
+                    else: "$pokemon2.name"
+                }
+            }
+        }
+    }
+]).pretty()
+
+{
+        "first_pokemon" : "Machop",
+        "second_pokemon" : "Giratina Altered Forme",
+        "winner" : "Giratina Altered Forme"
+}
+
+----------------------
+
+db.combats.aggregate([
+    {
+        $lookup: {
+            from: "pokemon",
+            localField: "First_pokemon",
+            foreignField: "_id",
+            as: "pokemon1_arr"
+        }
+    },
+    {
+        $lookup: {
+            from: "pokemon",
+            localField: "Second_pokemon",
+            foreignField: "_id",
+            as: "pokemon2_arr"
+        }
+    },
+]).pretty()
+
+{
+        "_id" : ObjectId("62630a6dd8b52866fd3e78c9"),
+        "First_pokemon" : 563,
+        "Second_pokemon" : 578,
+        "Winner" : 563,
+        "pokemon1_arr" : [
+                {
+                        "_id" : 563,
+                        "types" : [
+                                "Water"
+                        ],
+                        "name" : "Samurott",
+                        "legendary" : false,
+                        "hp" : 95,
+                        "attack" : 100,
+                        "defense" : 85,
+                        "speed" : 70,
+                        "generation" : 5
+                }
+        ],
+        "pokemon2_arr" : [
+                {
+                        "_id" : 578,
+                        "types" : [
+                                "Psychic"
+                        ],
+                        "name" : "Musharna",
+                        "legendary" : false,
+                        "hp" : 116,
+                        "attack" : 75,
+                        "defense" : 85,
+                        "speed" : 29,
+                        "generation" : 5
+                }
+        ]
+}
+
+
+-------------------------------------------------
+// destrichando 
+
+db.combats.aggregate([
+    {
+        $lookup: {
+            from: "pokemon",
+            localField: "First_pokemon",
+            foreignField: "_id",
+            as: "pokemon1_arr"
+        }
+    },
+    {
+        $lookup: {
+            from: "pokemon",
+            localField: "Second_pokemon",
+            foreignField: "_id",
+            as: "pokemon2_arr"
+        }
+    },
+    {
+        $project: {
+            _id: 0,
+            Winner: 1,
+            pokemon1: {
+                $arrayElemAt: ["$pokemon1_arr", 0]
+            },
+            pokemon2: {
+                $arrayElemAt: ["$pokemon2_arr", 0]
+            }
+        }
+    },
+]).pretty()
+
+{
+        "Winner" : 563,
+        "pokemon1" : {
+                "_id" : 563,
+                "types" : [
+                        "Water"
+                ],
+                "name" : "Samurott",
+                "legendary" : false,
+                "hp" : 95,
+                "attack" : 100,
+                "defense" : 85,
+                "speed" : 70,
+                "generation" : 5
+        },
+        "pokemon2" : {
+                "_id" : 578,
+                "types" : [
+                        "Psychic"
+                ],
+                "name" : "Musharna",
+                "legendary" : false,
+                "hp" : 116,
+                "attack" : 75,
+                "defense" : 85,
+                "speed" : 29,
+                "generation" : 5
+        }
+}
